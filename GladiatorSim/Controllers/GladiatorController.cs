@@ -1,14 +1,17 @@
 ﻿using GladiatorSim.DTO.Gladiator;
 using GladiatorSim.Models;
 using GladiatorSim.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Writers;
+using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace GladiatorSim.Controllers
 {
-    [Route("[controller]")]
+    [Authorize]
+    [Route("api/[controller]")]
     [ApiController]
     public class GladiatorController : ControllerBase
     {
@@ -24,6 +27,7 @@ namespace GladiatorSim.Controllers
         [HttpGet("GetAll")]
         public async Task<ActionResult<ServiceResponse<List<Gladiator>>>> GetAll()
         {
+            //int id = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
             return Ok(await _gladiatorService.GetAllGladiators());
         }
 

@@ -11,6 +11,7 @@ namespace GladiatorSim.Data
         }
 
         public DbSet<Gladiator> Gladiators => Set<Gladiator>();
+        public DbSet<User> Users => Set<User>();
 
     }
 }

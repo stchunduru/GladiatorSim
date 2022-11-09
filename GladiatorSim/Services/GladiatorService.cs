@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Writers;
 using System.Runtime.InteropServices;
+using System.Security.Claims;
 
 namespace GladiatorSim.Services
 {
@@ -13,19 +14,24 @@ namespace GladiatorSim.Services
     {
         private readonly IMapper _mapper;
         private readonly DataContext _context;
+        private readonly IHttpContextAccessor _http;
 
-        private static List<Gladiator> _list = new List<Gladiator>();
+        //private static List<Gladiator> _list = new List<Gladiator>();
 
-        public GladiatorService(IMapper mapper, DataContext context)
+        public GladiatorService(IMapper mapper, DataContext context, IHttpContextAccessor httpContextAccessor)
         {
             _mapper = mapper;
             _context = context;
+            _http = httpContextAccessor;
         }
+
+        private int GetUserId() => int.Parse(_http.HttpContext.User
+            .FindFirstValue(ClaimTypes.NameIdentifier));
 
         public async Task<ServiceResponse<List<GetGladiatorDTO>>> GetAllGladiators()
         {
             var response = new ServiceResponse<List<GetGladiatorDTO>>();
-            var glads = await _context.Gladiators.ToListAsync();
+            var glads = await _context.Gladiators.Where(c => c.User.Id == GetUserId()).ToListAsync();
             response.Data = glads.Select(g => _mapper.Map<GetGladiatorDTO>(g)).ToList();
             return response;
 
@@ -38,7 +44,7 @@ namespace GladiatorSim.Services
         public async Task<ServiceResponse<GetGladiatorDTO>> GetGladiator(int id)
         {
             var response = new ServiceResponse<GetGladiatorDTO>();
-            response.Data = _mapper.Map<GetGladiatorDTO>(_context.Gladiators.FirstOrDefaultAsync(g => g.Id == id));
+            response.Data = _mapper.Map<GetGladiatorDTO>( await _context.Gladiators.FirstOrDefaultAsync(g => g.Id == id));
             return response;
 
             //var serviceResponse = new ServiceResponse<GetGladiatorDTO>();
@@ -50,10 +56,12 @@ namespace GladiatorSim.Services
         {
             var response = new ServiceResponse<List<GetGladiatorDTO>>();
             Gladiator g = _mapper.Map<Gladiator>(newGladiator);
+            g.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == GetUserId());
             _context.Add(g);
             await _context.SaveChangesAsync();
             response.Data = await _context.Gladiators
-                .Select(g => _mapper.Map<GetGladiatorDTO>(g))
+                .Where(c => c.User.Id == GetUserId())
+                .Select(c => _mapper.Map<GetGladiatorDTO>(c))
                 .ToListAsync();
             return response;
 
@@ -75,7 +83,15 @@ namespace GladiatorSim.Services
             try
             {
                 var g = await _context.Gladiators.FirstOrDefaultAsync(c => c.Id == updateGladiator.Id);
-                g = _mapper.Map<Gladiator>(updateGladiator);
+                g.Health = updateGladiator.Health;
+                g.Strength = updateGladiator.Strength;
+                g.Name = updateGladiator.Name;
+                g.Stamina = updateGladiator.Stamina;
+                g.Dexterity = updateGladiator.Dexterity;
+                g.Defense = updateGladiator.Defense;
+                g.History = updateGladiator.History;
+                g.Origin = updateGladiator.Origin;
+                g.Sponsor = updateGladiator.Sponsor;
                 
                 await _context.SaveChangesAsync();
                 response.Data = _mapper.Map<GetGladiatorDTO>(g);

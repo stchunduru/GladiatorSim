@@ -60,6 +60,11 @@ namespace GladiatorSim.Controllers
             return Ok(await _gladiatorService.DeleteGladiator(id));
         }
 
+        [HttpPost("Skill")]
+        public async Task<ActionResult<ServiceResponse<GetGladiatorDTO>>> AddGladiatorSkill(AddGladiatorSkillDTO skill)
+        {
+            return Ok(await _gladiatorService.AddGladiatorSkill(skill));
+        }
 
     }
 }

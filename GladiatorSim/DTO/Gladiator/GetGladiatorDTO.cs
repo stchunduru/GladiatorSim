@@ -1,4 +1,6 @@
-﻿using GladiatorSim.Models;
+﻿using GladiatorSim.DTO.Skill;
+using GladiatorSim.DTO.Weapon;
+using GladiatorSim.Models;
 
 namespace GladiatorSim.DTO.Gladiator
 {
@@ -14,5 +16,7 @@ namespace GladiatorSim.DTO.Gladiator
         public GladiatorOrigin Origin { get; set; }
         public GladiatorHistory History { get; set; }
         public GladiatorSponsor Sponsor { get; set; }
+        public GetWeaponDTO Weapon { get; set; }
+        public List<GetSkillDTO> Skills { get; set; }
     }
 }

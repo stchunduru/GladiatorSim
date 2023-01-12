@@ -4,6 +4,7 @@ using GladiatorSim.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GladiatorSim.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20221110015155_weapons")]
+    partial class weapons
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,16 +32,10 @@ namespace GladiatorSim.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int>("Defeats")
-                        .HasColumnType("int");
-
                     b.Property<int>("Defense")
                         .HasColumnType("int");
 
                     b.Property<int>("Dexterity")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Fights")
                         .HasColumnType("int");
 
                     b.Property<int>("Health")
@@ -66,53 +62,11 @@ namespace GladiatorSim.Migrations
                     b.Property<int?>("UserId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Victories")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
 
                     b.ToTable("Gladiators");
-                });
-
-            modelBuilder.Entity("GladiatorSim.Models.Skill", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("Damage")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Skills");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Damage = 30,
-                            Name = "Light Attack"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Damage = 60,
-                            Name = "Heavy Attack"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Damage = 90,
-                            Name = "Ultra Attack"
-                        });
                 });
 
             modelBuilder.Entity("GladiatorSim.Models.User", b =>
@@ -162,21 +116,6 @@ namespace GladiatorSim.Migrations
                     b.ToTable("Weapons");
                 });
 
-            modelBuilder.Entity("GladiatorSkill", b =>
-                {
-                    b.Property<int>("GladiatorsId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SkillsId")
-                        .HasColumnType("int");
-
-                    b.HasKey("GladiatorsId", "SkillsId");
-
-                    b.HasIndex("SkillsId");
-
-                    b.ToTable("GladiatorSkill");
-                });
-
             modelBuilder.Entity("GladiatorSim.Models.Gladiator", b =>
                 {
                     b.HasOne("GladiatorSim.Models.User", "User")
@@ -195,21 +134,6 @@ namespace GladiatorSim.Migrations
                         .IsRequired();
 
                     b.Navigation("Gladiator");
-                });
-
-            modelBuilder.Entity("GladiatorSkill", b =>
-                {
-                    b.HasOne("GladiatorSim.Models.Gladiator", null)
-                        .WithMany()
-                        .HasForeignKey("GladiatorsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("GladiatorSim.Models.Skill", null)
-                        .WithMany()
-                        .HasForeignKey("SkillsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("GladiatorSim.Models.Gladiator", b =>

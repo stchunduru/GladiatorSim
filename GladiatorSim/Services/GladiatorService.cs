@@ -44,7 +44,8 @@ namespace GladiatorSim.Services
         public async Task<ServiceResponse<GetGladiatorDTO>> GetGladiator(int id)
         {
             var response = new ServiceResponse<GetGladiatorDTO>();
-            response.Data = _mapper.Map<GetGladiatorDTO>( await _context.Gladiators.FirstOrDefaultAsync(g => g.Id == id));
+            response.Data = _mapper.Map<GetGladiatorDTO>( await _context.Gladiators.
+                FirstOrDefaultAsync(g => g.Id == id && g.User.Id == GetUserId()));
             return response;
 
             //var serviceResponse = new ServiceResponse<GetGladiatorDTO>();
@@ -82,19 +83,29 @@ namespace GladiatorSim.Services
 
             try
             {
-                var g = await _context.Gladiators.FirstOrDefaultAsync(c => c.Id == updateGladiator.Id);
-                g.Health = updateGladiator.Health;
-                g.Strength = updateGladiator.Strength;
-                g.Name = updateGladiator.Name;
-                g.Stamina = updateGladiator.Stamina;
-                g.Dexterity = updateGladiator.Dexterity;
-                g.Defense = updateGladiator.Defense;
-                g.History = updateGladiator.History;
-                g.Origin = updateGladiator.Origin;
-                g.Sponsor = updateGladiator.Sponsor;
-                
-                await _context.SaveChangesAsync();
-                response.Data = _mapper.Map<GetGladiatorDTO>(g);
+                var g = await _context.Gladiators
+                    .FirstOrDefaultAsync(c => c.Id == updateGladiator.Id && c.User.Id == GetUserId());
+
+                if(g != null)
+                {
+                    g.Health = updateGladiator.Health;
+                    g.Strength = updateGladiator.Strength;
+                    g.Name = updateGladiator.Name;
+                    g.Stamina = updateGladiator.Stamina;
+                    g.Dexterity = updateGladiator.Dexterity;
+                    g.Defense = updateGladiator.Defense;
+                    g.History = updateGladiator.History;
+                    g.Origin = updateGladiator.Origin;
+                    g.Sponsor = updateGladiator.Sponsor;
+
+                    await _context.SaveChangesAsync();
+                    response.Data = _mapper.Map<GetGladiatorDTO>(g);
+                } 
+                else
+                {
+                    response.Success = false;
+                    response.Message = "Gladiator not found";
+                }
 
             }
             catch (Exception e)
@@ -130,13 +141,23 @@ namespace GladiatorSim.Services
 
             try
             {
-                Gladiator g = await _context.Gladiators.FirstOrDefaultAsync(c => c.Id == id);
-                _context.Gladiators.Remove(g);
-                await _context.SaveChangesAsync();
-
-                response.Data = await _context.Gladiators
-                .Select(g => _mapper.Map<GetGladiatorDTO>(g))
-                .ToListAsync();
+                Gladiator g = await _context.Gladiators.
+                    FirstOrDefaultAsync(c => c.Id == id && c.User.Id == GetUserId());
+                if(g != null)
+                {
+                    _context.Gladiators.Remove(g);
+                    await _context.SaveChangesAsync();
+                    response.Data = await _context.Gladiators
+                        .Where(g => g.User.Id == GetUserId())
+                        .Select(g => _mapper.Map<GetGladiatorDTO>(g))
+                        .ToListAsync();
+                }
+                else
+                {
+                    response.Success = false;
+                    response.Message = "Gladiator not found";
+                }
+                
             }
             catch (Exception e)
             {
@@ -161,5 +182,37 @@ namespace GladiatorSim.Services
             return response;
         }
 
+        public async Task<ServiceResponse<GetGladiatorDTO>> AddGladiatorSkill(AddGladiatorSkillDTO skill)
+        {
+            var response = new ServiceResponse<GetGladiatorDTO>();
+            try{
+                var gladiator= await _context.Gladiators
+                    .Include(gladiator => gladiator.Weapon)
+                    .Include(gladiator => gladiator.Skills)
+                    .FirstOrDefaultAsync(gladiator => gladiator.Id == skill.Id && gladiator.User.Id == GetUserId());
+
+                var dbSkill = await _context.Skills.FirstOrDefaultAsync(s => s.Id == skill.SkillId);
+
+                if (dbSkill == null)
+                {
+                    response.Success = false;
+                    response.Message = "Skill not found";
+                    return response;
+                }
+
+                gladiator.Skills.Add(dbSkill);
+                await _context.SaveChangesAsync();
+                response.Data = _mapper.Map<GetGladiatorDTO>(gladiator);
+
+            } 
+            catch(Exception e)
+            {
+                response.Success = false;
+                response.Message = e.Message;
+                return response;
+            }
+
+            return response;
+        }
     }
 }
